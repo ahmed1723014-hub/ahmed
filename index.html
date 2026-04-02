@@ -1,13 +1,513 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AstroTwin | Cognitive Digital Twin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --space-dark: #0B0F1A;
+            --neon-blue: #00D4FF;
+            --soft-purple: #7B61FF;
+            --alert-green: #10B981;
+            --alert-yellow: #F59E0B;
+            --alert-red: #EF4444;
+        }
 
+        body {
+            background-color: var(--space-dark);
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+        }
+
+        .neon-glow {
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .neon-text {
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .sidebar-link.active {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--neon-blue);
+        }
+
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--space-dark);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--neon-blue);
+        }
+
+        /* Reaction Test Styles */
+        #reaction-box.waiting { background-color: rgba(239, 68, 68, 0.2); }
+        #reaction-box.ready { background-color: var(--alert-green); color: var(--space-dark); }
+        
+        input[type="range"] {
+            accent-color: var(--neon-blue);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- App Layout (Hidden on Home) -->
+    <div id="app-container" style="display: none;" class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 h-screen bg-[#0B0F1A] border-r border-white/10 flex flex-col sticky top-0">
+            <div class="p-8">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-[#00D4FF] rounded-lg flex items-center justify-center neon-glow">
+                        <i data-lucide="shield" class="text-[#0B0F1A] w-5 h-5"></i>
+                    </div>
+                    <span class="font-orbitron font-black text-xl tracking-tighter">ASTRO<span class="text-[#00D4FF]">TWIN</span></span>
+                </div>
+            </div>
+
+            <nav class="flex-1 px-4 space-y-2 mt-4">
+                <a href="#" onclick="showPage('dashboard')" class="sidebar-link active flex items-center gap-4 px-4 py-3 rounded-xl transition-all group text-gray-400 hover:text-white hover:bg-white/5">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+                <a href="#" onclick="showPage('tests')" class="sidebar-link flex items-center gap-4 px-4 py-3 rounded-xl transition-all group text-gray-400 hover:text-white hover:bg-white/5">
+                    <i data-lucide="zap" class="w-5 h-5"></i>
+                    <span class="font-medium">Tests</span>
+                </a>
+                <a href="#" onclick="showPage('twin')" class="sidebar-link flex items-center gap-4 px-4 py-3 rounded-xl transition-all group text-gray-400 hover:text-white hover:bg-white/5">
+                    <i data-lucide="brain" class="w-5 h-5"></i>
+                    <span class="font-medium">Digital Twin</span>
+                </a>
+                <a href="#" onclick="showPage('analytics')" class="sidebar-link flex items-center gap-4 px-4 py-3 rounded-xl transition-all group text-gray-400 hover:text-white hover:bg-white/5">
+                    <i data-lucide="line-chart" class="w-5 h-5"></i>
+                    <span class="font-medium">Analytics</span>
+                </a>
+                <a href="#" onclick="showPage('simulation')" class="sidebar-link flex items-center gap-4 px-4 py-3 rounded-xl transition-all group text-gray-400 hover:text-white hover:bg-white/5">
+                    <i data-lucide="activity" class="w-5 h-5"></i>
+                    <span class="font-medium">Simulation</span>
+                </a>
+                <a href="#" onclick="showPage('settings')" class="sidebar-link flex items-center gap-4 px-4 py-3 rounded-xl transition-all group text-gray-400 hover:text-white hover:bg-white/5">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                    <span class="font-medium">Settings</span>
+                </a>
+            </nav>
+
+            <div class="p-4">
+                <div class="glass-panel p-4 mb-4">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-2 h-2 bg-[#10B981] rounded-full animate-pulse"></div>
+                        <span class="text-[10px] uppercase font-bold tracking-widest text-gray-400">Sync Status</span>
+                    </div>
+                    <p class="text-xs font-medium">Model v4.2.0 - Stable</p>
+                </div>
+                <button onclick="window.location.reload()" class="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-gray-500 hover:text-[#EF4444] hover:bg-[#EF4444]/5 transition-all">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                    <span class="font-medium">Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Navbar -->
+            <header class="h-20 border-b border-white/10 flex items-center justify-between px-8 bg-[#0B0F1A]/50 backdrop-blur-xl sticky top-0 z-50">
+                <div class="flex items-center gap-4">
+                    <div class="relative hidden md:block">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4"></i>
+                        <input type="text" placeholder="Search mission data..." class="bg-white/5 border border-white/10 rounded-full py-2 pl-10 pr-6 text-sm focus:outline-none focus:border-[#00D4FF]/50 w-64 transition-all text-white">
+                    </div>
+                </div>
+                <div class="flex items-center gap-6">
+                    <button class="relative text-gray-400 hover:text-white transition-colors">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                        <span class="absolute -top-1 -right-1 w-2 h-2 bg-[#EF4444] rounded-full"></span>
+                    </button>
+                    <div class="h-8 w-[1px] bg-white/10 mx-2"></div>
+                    <div class="flex items-center gap-3 cursor-pointer group">
+                        <div class="text-right hidden sm:block">
+                            <p class="text-sm font-bold group-hover:text-[#00D4FF] transition-colors">Alex Vance</p>
+                            <p class="text-[10px] text-gray-500 uppercase tracking-widest">Commander</p>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden group-hover:border-[#00D4FF] transition-all">
+                            <i data-lucide="user" class="text-gray-500 w-5 h-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-6">
+                <!-- Dashboard Section -->
+                <section id="dashboard" class="page-section active space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="glass-panel p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="p-2 rounded-lg bg-white/5 text-[#10B981]">
+                                    <i data-lucide="brain" class="w-5 h-5"></i>
+                                </div>
+                                <span class="text-[10px] font-bold px-2 py-1 rounded-full bg-white/5 text-[#10B981]">Stable</span>
+                            </div>
+                            <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">Cognitive State</p>
+                            <p class="text-2xl font-black text-[#10B981]">Normal</p>
+                        </div>
+                        <div class="glass-panel p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="p-2 rounded-lg bg-white/5 text-[#00D4FF]">
+                                    <i data-lucide="clock" class="w-5 h-5"></i>
+                                </div>
+                                <span class="text-[10px] font-bold px-2 py-1 rounded-full bg-white/5 text-[#10B981]">-12ms</span>
+                            </div>
+                            <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">Reaction Time</p>
+                            <p class="text-2xl font-black text-[#00D4FF]">248ms</p>
+                        </div>
+                        <div class="glass-panel p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="p-2 rounded-lg bg-white/5 text-[#7B61FF]">
+                                    <i data-lucide="heart" class="w-5 h-5"></i>
+                                </div>
+                                <span class="text-[10px] font-bold px-2 py-1 rounded-full bg-white/5 text-[#10B981]">Stable</span>
+                            </div>
+                            <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">Heart Rate</p>
+                            <p class="text-2xl font-black text-[#7B61FF]">72 BPM</p>
+                        </div>
+                        <div class="glass-panel p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="p-2 rounded-lg bg-white/5 text-[#00D4FF]">
+                                    <i data-lucide="trending-up" class="w-5 h-5"></i>
+                                </div>
+                                <span class="text-[10px] font-bold px-2 py-1 rounded-full bg-white/5 text-[#10B981]">Low</span>
+                            </div>
+                            <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">Risk Score</p>
+                            <p class="text-2xl font-black text-[#00D4FF]">12%</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 glass-panel p-6">
+                            <h3 class="text-lg font-bold uppercase tracking-wider mb-6">Real-Time Performance</h3>
+                            <div class="h-[300px] w-full">
+                                <canvas id="performanceChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="glass-panel p-6 flex flex-col items-center justify-center text-center">
+                            <h3 class="text-lg font-bold uppercase tracking-wider mb-6">AI Prediction</h3>
+                            <div class="relative w-40 h-40 mb-6">
+                                <canvas id="riskGauge"></canvas>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span class="text-4xl font-black" id="risk-value">12%</span>
+                                    <span class="text-[10px] uppercase text-gray-500">Risk Level</span>
+                                </div>
+                            </div>
+                            <p className="text-sm text-gray-400 mb-2">Predicted Decline in:</p>
+                            <p className="text-2xl font-orbitron text-[#00D4FF]">12 Minutes</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tests Section -->
+                <section id="tests" class="page-section space-y-6">
+                    <h2 class="text-3xl font-bold tracking-tight mb-8">Cognitive Assessment</h2>
+                    <div id="test-selection" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div onclick="startReactionTest()" class="glass-panel p-8 flex flex-col items-center text-center group cursor-pointer hover:scale-105 transition-all">
+                            <div class="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6 text-[#00D4FF]">
+                                <i data-lucide="zap" class="w-10 h-10"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold mb-4">Reaction Time</h3>
+                            <p class="text-gray-400 mb-8">Click as fast as you can when the color changes.</p>
+                            <button class="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 font-bold">Start Test</button>
+                        </div>
+                        <div class="glass-panel p-8 flex flex-col items-center text-center opacity-50">
+                            <div class="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6 text-[#7B61FF]">
+                                <i data-lucide="brain" class="w-10 h-10"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold mb-4">Memory (N-Back)</h3>
+                            <p class="text-gray-400 mb-8">Recall numbers shown in sequence. (Locked)</p>
+                        </div>
+                        <div class="glass-panel p-8 flex flex-col items-center text-center opacity-50">
+                            <div class="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6 text-[#10B981]">
+                                <i data-lucide="target" class="w-10 h-10"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold mb-4">Focus Test</h3>
+                            <p class="text-gray-400 mb-8">Selective attention measurement. (Locked)</p>
+                        </div>
+                    </div>
+
+                    <div id="reaction-test-area" style="display: none;" class="max-w-3xl mx-auto text-center">
+                        <button onclick="cancelTest()" class="mb-6 text-sm text-gray-400 hover:text-white flex items-center gap-2">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Back to Selection
+                        </button>
+                        <div id="reaction-box" onclick="handleReactionClick()" class="glass-panel p-12 flex flex-col items-center min-h-[400px] justify-center cursor-pointer transition-colors">
+                            <div id="reaction-content">
+                                <h3 class="text-2xl font-bold mb-6">Ready to test your speed?</h3>
+                                <button class="bg-[#00D4FF] text-[#0B0F1A] font-bold py-4 px-12 rounded-full neon-glow">Start</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Simulation Section -->
+                <section id="simulation" class="page-section space-y-6">
+                    <h2 class="text-3xl font-bold tracking-tight mb-8">Mission Simulation</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div class="glass-panel p-8 space-y-10">
+                            <h3 class="text-lg font-bold uppercase tracking-widest mb-6">Environmental Controls</h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium">Sleep Deprivation</span>
+                                    <span id="sleep-val" class="text-[#00D4FF] font-orbitron">8h</span>
+                                </div>
+                                <input type="range" min="0" max="12" step="0.5" value="8" oninput="updateSimVal('sleep', this.value)" class="w-full">
+                            </div>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium">Stress Level</span>
+                                    <span id="stress-val" class="text-[#00D4FF] font-orbitron">20%</span>
+                                </div>
+                                <input type="range" min="0" max="100" value="20" oninput="updateSimVal('stress', this.value)" class="w-full">
+                            </div>
+                            <button onclick="runSimulation()" class="w-full py-4 rounded-2xl bg-[#00D4FF] text-[#0B0F1A] font-black uppercase tracking-widest hover:scale-[1.02] transition-all neon-glow">Run Simulation</button>
+                        </div>
+                        <div class="lg:col-span-2 glass-panel p-8 h-[400px]">
+                            <h3 class="text-lg font-bold uppercase tracking-widest mb-8">Predicted Performance</h3>
+                            <canvas id="simChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Other sections placeholders -->
+                <section id="twin" class="page-section">
+                    <h2 class="text-3xl font-bold mb-8">Digital Twin Profile</h2>
+                    <div class="glass-panel p-12 text-center text-gray-500">Neural mapping in progress...</div>
+                </section>
+                <section id="analytics" class="page-section">
+                    <h2 class="text-3xl font-bold mb-8">Data & Analytics</h2>
+                    <div class="glass-panel p-12 text-center text-gray-500">Historical data syncing...</div>
+                </section>
+                <section id="settings" class="page-section">
+                    <h2 class="text-3xl font-bold mb-8">Settings</h2>
+                    <div class="glass-panel p-12 text-center text-gray-500">System configuration...</div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Home Page (Landing) -->
+    <div id="home-page" class="min-h-screen flex flex-col items-center justify-center text-center px-4 relative overflow-hidden">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none">
+            <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-[#00D4FF]/10 rounded-full blur-[120px]"></div>
+            <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#7B61FF]/10 rounded-full blur-[120px]"></div>
+        </div>
+
+        <div class="z-10">
+            <h1 class="text-5xl md:text-7xl font-black mb-6 tracking-tighter bg-gradient-to-r from-[#00D4FF] to-[#7B61FF] bg-clip-text text-transparent">
+                AI-Powered Cognitive <br> Digital Twin
+            </h1>
+            <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-10 font-light">
+                Predict cognitive decline before it happens. Advanced monitoring and simulation system for deep space missions.
+            </p>
+            <button onclick="enterApp()" class="inline-flex items-center gap-2 bg-[#00D4FF] hover:bg-[#00D4FF]/80 text-[#0B0F1A] font-bold py-4 px-8 rounded-full transition-all hover:scale-105 neon-glow">
+                Open Dashboard <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <div class="mt-20 relative">
+            <div class="w-64 h-64 md:w-96 md:h-96 rounded-full border border-white/10 flex items-center justify-center relative">
+                <div class="absolute inset-0 animate-pulse bg-[#00D4FF]/5 rounded-full"></div>
+                <i data-lucide="brain" class="text-[#00D4FF] w-32 h-32 animate-pulse"></i>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Page Routing Logic
+        function enterApp() {
+            document.getElementById('home-page').style.display = 'none';
+            document.getElementById('app-container').style.display = 'flex';
+            initCharts();
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        // Charts Initialization
+        let perfChart, riskGauge, simChart;
+
+        function initCharts() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            perfChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 10}, (_, i) => `${i}:00`),
+                    datasets: [{
+                        label: 'Reaction Time',
+                        data: Array.from({length: 10}, () => 250 + Math.random() * 50),
+                        borderColor: '#00D4FF',
+                        backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#666' } },
+                        x: { grid: { display: false }, ticks: { color: '#666' } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            const gCtx = document.getElementById('riskGauge').getContext('2d');
+            riskGauge = new Chart(gCtx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [12, 88],
+                        backgroundColor: ['#00D4FF', 'rgba(255,255,255,0.05)'],
+                        borderWidth: 0,
+                        circumference: 360,
+                        rotation: 0
+                    }]
+                },
+                options: {
+                    cutout: '85%',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { tooltip: { enabled: false } }
+                }
+            });
+        }
+
+        // Reaction Test Logic
+        let reactionState = 'idle';
+        let startTime, timeout;
+
+        function startReactionTest() {
+            document.getElementById('test-selection').style.display = 'none';
+            document.getElementById('reaction-test-area').style.display = 'block';
+            resetReactionBox();
+        }
+
+        function cancelTest() {
+            document.getElementById('test-selection').style.display = 'grid';
+            document.getElementById('reaction-test-area').style.display = 'none';
+            clearTimeout(timeout);
+        }
+
+        function resetReactionBox() {
+            reactionState = 'idle';
+            const box = document.getElementById('reaction-box');
+            box.className = 'glass-panel p-12 flex flex-col items-center min-h-[400px] justify-center cursor-pointer transition-colors';
+            document.getElementById('reaction-content').innerHTML = `
+                <h3 class="text-2xl font-bold mb-6">Ready to test your speed?</h3>
+                <button class="bg-[#00D4FF] text-[#0B0F1A] font-bold py-4 px-12 rounded-full neon-glow">Start</button>
+            `;
+        }
+
+        function handleReactionClick() {
+            const box = document.getElementById('reaction-box');
+            if (reactionState === 'idle') {
+                reactionState = 'waiting';
+                box.classList.add('waiting');
+                document.getElementById('reaction-content').innerHTML = `<h3 class="text-2xl font-orbitron animate-pulse">Wait for Green...</h3>`;
+                const delay = 2000 + Math.random() * 3000;
+                timeout = setTimeout(() => {
+                    reactionState = 'ready';
+                    box.classList.remove('waiting');
+                    box.classList.add('ready');
+                    document.getElementById('reaction-content').innerHTML = `<h3 class="text-4xl font-black">CLICK NOW!</h3>`;
+                    startTime = Date.now();
+                }, delay);
+            } else if (reactionState === 'waiting') {
+                clearTimeout(timeout);
+                alert('Too early!');
+                resetReactionBox();
+            } else if (reactionState === 'ready') {
+                const endTime = Date.now();
+                const result = endTime - startTime;
+                reactionState = 'result';
+                box.classList.remove('ready');
+                document.getElementById('reaction-content').innerHTML = `
+                    <h3 class="text-xl text-gray-400 mb-2 uppercase">Your Result</h3>
+                    <p class="text-6xl font-black text-[#00D4FF] mb-8">${result}ms</p>
+                    <button onclick="resetReactionBox(); event.stopPropagation();" class="bg-white/10 hover:bg-white/20 font-bold py-3 px-8 rounded-full transition-colors">Try Again</button>
+                `;
+            }
+        }
+
+        // Simulation Logic
+        function updateSimVal(type, val) {
+            document.getElementById(`${type}-val`).innerText = type === 'sleep' ? `${val}h` : `${val}%`;
+        }
+
+        function runSimulation() {
+            const sCtx = document.getElementById('simChart').getContext('2d');
+            if (simChart) simChart.destroy();
+            
+            simChart = new Chart(sCtx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 12}, (_, i) => `${i}h`),
+                    datasets: [{
+                        label: 'Performance',
+                        data: Array.from({length: 12}, () => 150 + Math.random() * 100),
+                        borderColor: '#00D4FF',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#00D4FF',
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#666' } },
+                        x: { grid: { display: false }, ticks: { color: '#666' } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
